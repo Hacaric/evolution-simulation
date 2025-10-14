@@ -1,4 +1,6 @@
 import random
+import time
+import math
 
 
 class NNLayer:
@@ -93,7 +95,6 @@ class NeuralNetwork:
     def run(self, input_data:list[int]) -> list[int]:
         if len(input_data) != self.temp_layers[0].size:
             raise Exception(f"Error in NeuralNetwork.run: Input data size ({len(input_data)}) does not match the input layer size ({self.temp_layers[0].size})")
-        print("STATE", [i.weights for i in self.connections])
         self.temp_layers[0].load(input_data)
 
         for i in range(len(self.connections)):
@@ -106,35 +107,32 @@ class NeuralNetwork:
             for output_node_idx in range(next_layer.size):
                 weighted_sum = 0
                 for input_node_idx in range(current_layer.size):
-                    print("DEBUG: ", input_node_idx, output_node_idx)
                     weighted_sum += current_layer.values[input_node_idx] * connections.weights[input_node_idx][output_node_idx]
                 new_next_layer_values[output_node_idx] = self.sigmoid(weighted_sum + connections.biases[output_node_idx])
             
             next_layer.load(new_next_layer_values)
         
-        return self.temp_layers[-1].values
-        
-        # temp_layer_this = None
-        # temp_layer_next = NNLayer(self.layers[0].size, randomize=False)
-        # temp_layer_next.load(input_data)
-        # for layer_idx in range(1, len(self.layers)):
-        #     layer_size = self.layers[layer_idx].size
-        #     temp_layer_this = temp_layer_next
-        #     temp_layer_next = NNLayer(self.layers[layer_idx].size, randomize=False)
-        #     for output_node_idx in range(temp_layer_next.size):
-        #         for input_node_idx in range(temp_layer_this.size):
-        #             temp_layer_next.values 
-
+        return [round(i, 3) for i in self.temp_layers[-1].values]
     
+    @classmethod
     def sigmoid(self, x):
-        return 1 / (1 + (2.71828 ** -x))
+        return 1 / (1 + math.exp(-x))
+    
+    def copy(self):
+        new_nn = NeuralNetwork([layer.size for layer in self.temp_layers])
+        for i, connection_layer in enumerate(self.connections):
+            deep_copied_weights = [inner_list.copy() for inner_list in connection_layer.weights]
+            new_nn.connections[i].load(deep_copied_weights, connection_layer.biases.copy())
+        return new_nn
+        
 
-total = 0
-results = []
-for i in range(100):
-    print("round", i)
-    random.seed(i)
-    nn = NeuralNetwork([2,1])
-    results.append(nn.run([0, 1])[0])
-    total += results[-1]
-print(f"Average: {total / 100}")
+def randomize_seed():
+    random.seed(time.time())
+
+# total = 0
+# results = []
+# for i in range(100):
+#     nn = NeuralNetwork([2,1])
+#     results.append(nn.run([0, 1])[0])
+#     total += results[-1]
+# print(f"Average: {total / 100}")
