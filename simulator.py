@@ -83,14 +83,19 @@ def evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_
 
 best_error_rate_average = 0
 print("Started testing...")
-for test_i in range(100):
-    nn, best_error_rate = evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, debug=False)
-    best_error_rate_average += (best_error_rate * test_i + best_error_rate) / (test_i + 1)
-    print(f"#{test_i}: Error rate after {ITERATIONS} iterations: {round(best_error_rate, 8):.8f}")
+try:
+    for test_i in range(100):
+        nn, best_error_rate = evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, debug=False)
+        best_error_rate_average += (best_error_rate_average * test_i + best_error_rate) / (test_i + 1)
+        print(f"#{test_i}: Error rate after {ITERATIONS} iterations: {round(best_error_rate, 8):.8f}")
+except KeyboardInterrupt:
+    print("\nInterupted...")
 
-print(f"Best error rate average: {best_error_rate_average}")
+print(f"Best error rate average: {best_error_rate_average:.8f}")
 
 print(f"Final NN output for [0,0]: {nn.run(dataset[0][0])} - Correct: {dataset[0][1]}")
 print(f"Final NN output for [0,1]: {nn.run(dataset[1][0])} - Correct: {dataset[1][1]}")
 print(f"Final NN output for [1,0]: {nn.run(dataset[2][0])} - Correct: {dataset[2][1]}")
 # print(f"Final NN output for [1,1]: {nn.run(dataset[3][0])} - Correct: {dataset[3][1]}")
+
+#TODO: SAVE NN TO FILE AND LOAD
