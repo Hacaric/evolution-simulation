@@ -5,7 +5,7 @@ from evolve import *
 
 
 ITERATIONS = 1500
-NN_PER_ITERATION = 20
+NN_PER_ITERATION = 2
 NN_MUTATION_RATE:tuple[float, float] = (0, 0.1)
 NN_MAX_MUTATION_SIZE:float = 1
 training_samples_count = 100
@@ -55,16 +55,16 @@ try:
         dataset:list[list[list[int], list[int]]] = []
         unseen_dataset:list[list[list[int], list[int]]] = []
         random_pick = random.randint(0, 6000)
-        for i in range(len(train_X[random_pick:random_pick+training_samples_count])):
-            image = train_X[i].flatten() / 255.0  # Normalize pixel values to [0, 1]
+        for i in range(training_samples_count):
+            image = train_X[i+random_pick].flatten() / 255.0  # Normalize pixel values to [0, 1]
             label = numpy.zeros(10)
-            label[train_y[i]] = 1
+            label[train_y[i+random_pick]] = 1
             dataset.append([image.tolist(), label.tolist()])
         random_pick = random.randint(0, 6000)
-        for i in range(len(train_X[random_pick:random_pick+training_samples_count])):
-            image = train_X[i].flatten() / 255.0  # Normalize pixel values to [0, 1]
+        for i in range(training_samples_count):
+            image = train_X[i+random_pick].flatten() / 255.0  # Normalize pixel values to [0, 1]
             label = numpy.zeros(10)
-            label[train_y[i]] = 1
+            label[train_y[i+random_pick]] = 1
             unseen_dataset.append([image.tolist(), label.tolist()])
         #
         nn, best_cost = evolve(NN_SIZE, dataset, unseen_dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, debug=True, debug_round = test_i)
