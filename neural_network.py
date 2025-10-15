@@ -1,6 +1,7 @@
 import random
 import time
 import math
+import json
 
 
 class NNLayer:
@@ -34,11 +35,15 @@ class NNLayerConnections:
     weights = []
     biases = []
     value_range = (-1, -1)
+    total_weights = 0
+    total_biases = 0
     def __init__(self, input_layer_size, output_layer_size, randomize=True, random_range=(-1,1)):
         self.input_size = -1
         self.output_size = -1
         self.weights = []
         self.biases = []
+        self.total_biases = output_layer_size
+        self.total_weights = input_layer_size * output_layer_size
         self.value_range = (-1, -1)
         if input_layer_size <= 0 or output_layer_size <= 0:
             raise Exception(f"Error in NNLayerConnections.__init__: input layer(={input_layer_size}) nor output layer(={output_layer_size}) can be <= 0!")
@@ -79,9 +84,15 @@ class NNLayerConnections:
 class NeuralNetwork:
     temp_layers:NNLayer = []
     connections:NNLayerConnections = []
-    def __init__(self, layer_sizes:list[int]):
+    # total_biases:int = 0
+    # total_weights:int = 0
+    value_range = (0, 0)
+    def __init__(self, layer_sizes:list[int], value_range = (-1, 1), randomize_values = True):
         self.temp_layers = []
         self.connections = []
+        self.value_range = value_range
+        # self.total_weights = sum([connection.total_weights for connection in self.connections])
+        # self.tatal_biases = sum([connection.total_biases for connection in self.connections])
         if len(layer_sizes) < 2:
             raise Exception(f"Error in NeuralNetwork.__init__: A neural network must have at least 2 layers, but got {len(layer_sizes)}")
         elif 0 in layer_sizes:
@@ -89,8 +100,8 @@ class NeuralNetwork:
         
         self.temp_layers.append(NNLayer(layer_sizes[0]))
         for curr_layer_size in range(1, len(layer_sizes)):
-            self.connections.append(NNLayerConnections(self.temp_layers[-1].size, layer_sizes[curr_layer_size]))
-            self.temp_layers.append(NNLayer(layer_sizes[curr_layer_size]))
+            self.connections.append(NNLayerConnections(self.temp_layers[-1].size, layer_sizes[curr_layer_size], randomize=randomize_values))
+            self.temp_layers.append(NNLayer(layer_sizes[curr_layer_size], randomize=randomize_values))
         
     def run(self, input_data:list[int]) -> list[int]:
         if len(input_data) != self.temp_layers[0].size:
@@ -124,6 +135,26 @@ class NeuralNetwork:
             deep_copied_weights = [inner_list.copy() for inner_list in connection_layer.weights]
             new_nn.connections[i].load(deep_copied_weights, connection_layer.biases.copy())
         return new_nn
+    
+    def parse(self) -> str:
+        parsed_data = {}
+        parsed_data["layer_sizes"] = [layer.size for layer in self.temp_layers]
+        parsed_data["connections"] = []
+        for connection_layer in self.connections:
+            parsed_data["connections"].append({
+                "weights": connection_layer.weights,
+                "biases": connection_layer.biases
+            })
+        return json.dumps(parsed_data)
+
+    @classmethod
+    def load_parsed_data(self, parsed_data):
+        parsed_data = json.loads(parsed_data)
+        nn = NeuralNetwork(parsed_data["layer_sizes"], randomize_values=False)
+        for i, connection_data in enumerate(parsed_data["connections"]):
+            nn.connections[i].load(connection_data["weights"], connection_data["biases"])
+        return nn
+        
         
 
 def randomize_seed():
