@@ -2,13 +2,15 @@ from neural_network import *
 from keras.datasets import mnist
 import numpy
 from evolve import *
+import time
 
 
-ITERATIONS = 1500
+ITERATIONS = 5000
 NN_PER_ITERATION = 5
-NN_MUTATION_COUNT:tuple[float, float] = (0, 4)
-NN_MAX_MUTATION_SIZE:float = 0.5
+NN_MUTATION_COUNT:tuple[float, float] = (1, 4)
+NN_MAX_MUTATION_SIZE:float = 1
 SAMPLE_SIZE_PER_GEN = 20
+CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS:int = 100
 training_somples_count = 1000
 
 print("Loading MNIST data...")
@@ -25,12 +27,17 @@ NN_SIZE = [784, 16, 16, 10]
 
 
 
-def evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, SAMPLE_SIZE_PER_ITERATION, debug = False, debug_round = "\b") -> tuple[NeuralNetwork, int]:
+def evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, SAMPLE_SIZE_PER_ITERATION, CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS, debug = False, debug_round = "\b") -> tuple[NeuralNetwork, int]:
     nn = NeuralNetwork(NN_SIZE)
     best_cost = 1
+
+    random_pick = random.randint(0, len(dataset) - SAMPLE_SIZE_PER_ITERATION - 1)
+    dataset_sample = dataset[random_pick:random_pick + SAMPLE_SIZE_PER_ITERATION]
     for iter in range(ITERATIONS):
-        random_pick = random.randint(0, len(dataset) - SAMPLE_SIZE_PER_ITERATION - 1)
-        dataset_sample = dataset[random_pick:random_pick + SAMPLE_SIZE_PER_ITERATION]
+        iter_timestamp = time.time()
+        if iter % CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS == 0:
+            random_pick = random.randint(0, len(dataset) - SAMPLE_SIZE_PER_ITERATION - 1)
+            dataset_sample = dataset[random_pick:random_pick + SAMPLE_SIZE_PER_ITERATION]
         nn_generation = [nn] # Elitism: carry over the best from the last generation
         for nn_idx in range(NN_PER_ITERATION):
             nn_generation.append(mutate_2(nn_generation[0], NN_MUTATION_RATE, (NN_MAX_MUTATION_SIZE)))
@@ -41,7 +48,7 @@ def evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_
         best_nn_idx = costs.index(best_cost)
         nn = nn_generation[best_nn_idx]
         if debug:
-            print(f"#{debug_round} Iteration {iter}: Best NN cost = {costs[best_nn_idx]}")
+            print(f"#{debug_round} Iteration {iter}: Best NN cost = {costs[best_nn_idx]:.5f}   Took {round(time.time() - iter_timestamp,3):.3f}s")
         if costs[best_nn_idx] == 0:
             if debug:
                 print(f"Cost is 0: breaking learning")
@@ -52,8 +59,10 @@ best_cost_average = 0
 nn:NeuralNetwork = None
 test_count = 1
 print("Started testing...")
+training_start_timestamp = time.time()
 try:
     for test_i in range(test_count):
+        test_timestamp = time.time()
         # loading dataset
         dataset:list[list[list[int], list[int]]] = []
         random_pick = random.randint(0, 6000)
@@ -63,9 +72,9 @@ try:
             label[train_y[i+random_pick]] = 1
             dataset.append([image.tolist(), label.tolist()])
         #
-        nn, best_cost = evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_COUNT, NN_MAX_MUTATION_SIZE, SAMPLE_SIZE_PER_GEN, debug=True, debug_round = test_i)
+        nn, best_cost = evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_COUNT, NN_MAX_MUTATION_SIZE, SAMPLE_SIZE_PER_GEN, CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS, debug=True, debug_round = test_i)
         best_cost_average += best_cost
-        print(f"#{test_i}: Costs after {ITERATIONS} iterations: {round(best_cost, 8):.8f}")
+        print(f"#{test_i}: Costs after {ITERATIONS} iterations: {round(best_cost, 8):.8f}  ({round(time.time() - test_timestamp, 2)}s)")
 except KeyboardInterrupt:
     print("\nInterupted...")
 best_cost_average /= test_count
@@ -81,6 +90,8 @@ best_cost_average /= test_count
 
 print(f"\nLast cost: {best_cost}")
 print(f"Best cost average: {round(best_cost_average, 8):.8f}")
+total_time = round(time.time() - training_start_timestamp, 3)
+print(f"Training took {total_time} seconds - {total_time/ITERATIONS} per iteration.")
 
 # import os
 with open("neural_network_latest.json", "w") as f:
