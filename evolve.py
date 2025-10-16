@@ -35,3 +35,20 @@ def mutate(nn_parent:NeuralNetwork, mutation_rate:tuple[float, float], max_mutat
         output_node_affected = random.randint(0, nn.connections[connection].output_size-1)
         nn.connections[connection].biases[output_node_affected] += mutation_size_bias
     return nn
+def mutate_2(nn_parent:NeuralNetwork, mutation_count:tuple[int, int], max_mutation_size:float):
+    nn = nn_parent.copy()
+    mutation_fraction = random_float(mutation_count)
+    mutation_size_weight = random_float((-max_mutation_size, max_mutation_size))
+    mutation_size_bias = random_float((-max_mutation_size, max_mutation_size))
+    total_weights_to_mutate = random.randint(mutation_count[0], mutation_count[1])
+    total_biases_to_mutate = random.randint(mutation_count[0], mutation_count[1])
+    for mutation_i in range(total_weights_to_mutate):
+        connection = random.randint(0, len(nn.connections)-1)
+        input_node_affected = random.randint(0, nn.connections[connection].input_size-1)
+        output_node_affected = random.randint(0, nn.connections[connection].output_size-1)
+        nn.connections[connection].weights[input_node_affected][output_node_affected] += mutation_size_weight
+    for mutation_i in range(total_biases_to_mutate):
+        connection = random.randint(0, len(nn.connections)-1)
+        output_node_affected = random.randint(0, nn.connections[connection].output_size-1)
+        nn.connections[connection].biases[output_node_affected] += mutation_size_bias
+    return nn

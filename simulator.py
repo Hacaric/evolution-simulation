@@ -5,10 +5,11 @@ from evolve import *
 
 
 ITERATIONS = 1500
-NN_PER_ITERATION = 2
-NN_MUTATION_RATE:tuple[float, float] = (0, 0.1)
-NN_MAX_MUTATION_SIZE:float = 1
-training_samples_count = 100
+NN_PER_ITERATION = 5
+NN_MUTATION_COUNT:tuple[float, float] = (0, 4)
+NN_MAX_MUTATION_SIZE:float = 0.5
+SAMPLE_SIZE_PER_GEN = 20
+training_somples_count = 1000
 
 print("Loading MNIST data...")
 (train_X, train_y), (test_X, test_y) = mnist.load_data()
@@ -24,16 +25,18 @@ NN_SIZE = [784, 16, 16, 10]
 
 
 
-def evolve(NN_SIZE, dataset, unseen_dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, debug = False, debug_round = "\b") -> tuple[NeuralNetwork, int]:
+def evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, SAMPLE_SIZE_PER_ITERATION, debug = False, debug_round = "\b") -> tuple[NeuralNetwork, int]:
     nn = NeuralNetwork(NN_SIZE)
     best_cost = 1
     for iter in range(ITERATIONS):
+        random_pick = random.randint(0, len(dataset) - SAMPLE_SIZE_PER_ITERATION - 1)
+        dataset_sample = dataset[random_pick:random_pick + SAMPLE_SIZE_PER_ITERATION]
         nn_generation = [nn] # Elitism: carry over the best from the last generation
         for nn_idx in range(NN_PER_ITERATION):
-            nn_generation.append(mutate(nn_generation[0], NN_MUTATION_RATE, (NN_MAX_MUTATION_SIZE)))
+            nn_generation.append(mutate_2(nn_generation[0], NN_MUTATION_RATE, (NN_MAX_MUTATION_SIZE)))
         costs = []
         for nn_idx in range(len(nn_generation)):
-            costs.append(get_cost_of_nn(nn_generation[nn_idx], unseen_dataset))
+            costs.append(get_cost_of_nn(nn_generation[nn_idx], dataset_sample))
         best_cost = min(costs)
         best_nn_idx = costs.index(best_cost)
         nn = nn_generation[best_nn_idx]
@@ -53,21 +56,14 @@ try:
     for test_i in range(test_count):
         # loading dataset
         dataset:list[list[list[int], list[int]]] = []
-        unseen_dataset:list[list[list[int], list[int]]] = []
         random_pick = random.randint(0, 6000)
-        for i in range(training_samples_count):
+        for i in range(training_somples_count):
             image = train_X[i+random_pick].flatten() / 255.0  # Normalize pixel values to [0, 1]
             label = numpy.zeros(10)
             label[train_y[i+random_pick]] = 1
             dataset.append([image.tolist(), label.tolist()])
-        random_pick = random.randint(0, 6000)
-        for i in range(training_samples_count):
-            image = train_X[i+random_pick].flatten() / 255.0  # Normalize pixel values to [0, 1]
-            label = numpy.zeros(10)
-            label[train_y[i+random_pick]] = 1
-            unseen_dataset.append([image.tolist(), label.tolist()])
         #
-        nn, best_cost = evolve(NN_SIZE, dataset, unseen_dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_MAX_MUTATION_SIZE, debug=True, debug_round = test_i)
+        nn, best_cost = evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_COUNT, NN_MAX_MUTATION_SIZE, SAMPLE_SIZE_PER_GEN, debug=True, debug_round = test_i)
         best_cost_average += best_cost
         print(f"#{test_i}: Costs after {ITERATIONS} iterations: {round(best_cost, 8):.8f}")
 except KeyboardInterrupt:
