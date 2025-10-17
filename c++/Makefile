@@ -25,3 +25,17 @@ $(TARGET): $(SRCS)
 # Target to remove the built executable
 clean:
 	rm -f $(TARGET)
+# The source file(s) for the project
+SRCS = main.cpp neurons.cpp
+
+# The default target, 'all', builds the main target.
+all: $(TARGET)
+
+$(TARGET): $(SRCS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS)
+
+.PHONY: all clean
+
+# Target to remove the built executable
+clean:
+	rm -f $(TARGET)
