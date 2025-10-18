@@ -27,12 +27,13 @@ struct Connection{
 
 class Network{
 private:
-    vector<Neuron*> neurons;
-    vector<Connection*> connections;
     vector<vector<Connection*>> map;
     unordered_map<Neuron*, uint> map_neuron_to_index; 
 public:
+    vector<Neuron*> neurons;
+    vector<Connection*> connections;
     Network(vector<Neuron*>, vector<Connection*>);
     vector<nnfloat> run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps);
     vector<nnfloat> run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps, nnfloat nomalize(nnfloat));
+    Network copy();
 };
