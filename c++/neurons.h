@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -13,9 +14,11 @@ nnfloat sigmoid(nnfloat x);
 
 
 struct Neuron{
+    nnfloat bias;
     nnfloat temp_value; nnfloat temp_value2;
     vector<Neuron*> connections;
-    Neuron(){
+    Neuron(nnfloat bias_){
+        bias = bias_;
         connections = vector<Neuron*>();
     };
 };
@@ -54,7 +57,10 @@ public:
     Dataset(uint input_size_, uint output_size_);
     void loadData_ByReference(vector<vector<nnfloat>> inputs_, vector<vector<nnfloat>> lables_);
     void loadData_ByCopying(vector<vector<nnfloat>> inputs_, vector<vector<nnfloat>> labels_);
-    nnfloat getCost(Network nn, uint steps, uint sample_start, uint sample_end);
-    nnfloat getCost(Network nn, uint steps, uint sample_lenght);
-    nnfloat getCostRandomSample(Network nn, uint steps, uint sample_lenght);
+    void addEntry_ByReference(vector<nnfloat> input_, vector<nnfloat> label_);
+    void addEntry_ByCopying(vector<nnfloat> input_, vector<nnfloat> label_);
+    nnfloat getNetworkCost(Network nn, uint steps, uint sample_start, uint sample_end);
+    nnfloat getNetworkCost(Network nn, uint steps, uint sample_lenght);
+    nnfloat getNetworkCost(Network nn, uint steps);
+    nnfloat getNetworkCostRandomSample(Network nn, uint steps, uint sample_lenght);
 };

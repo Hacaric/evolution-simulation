@@ -47,14 +47,14 @@ vector<Network> mutate(Network parent, uint copy_amount, pair<uint, uint> mutati
     return networks;
 }
 
-// nnfloat getCost(Network nn, uint steps, Dataset dataset)
+// nnfloat getNetworkCost(Network nn, uint steps, Dataset dataset)
 
 
 int main(){
     srand(time(NULL)); // Seed random number generator for rand()
     vector<Neuron*> neurons = vector<Neuron*>();
     for (uint i = 0; i < 5; i++){
-        Neuron* current_neuron = new Neuron();
+        Neuron* current_neuron = new Neuron(randfloat(-1, 1));
         neurons.push_back(current_neuron);
     }
     vector<Connection*> connections = vector<Connection*>();
@@ -67,16 +67,26 @@ int main(){
     vector<uint> input_neurons = vector<uint>();
     input_neurons.push_back(0);
     input_neurons.push_back(1);
-    vector<nnfloat> input = vector<nnfloat>();
-    input.push_back(randfloat(-1, 1));
-    input.push_back(randfloat(-1, 1));
+    vector<nnfloat> input1 = vector<nnfloat>();
+    input1.push_back(randfloat(-1, 1));
+    input1.push_back(randfloat(-1, 1));
     vector<uint> output_neurons = vector<uint>();
     output_neurons.push_back(4);
     Network nn = Network(neurons, connections, input_neurons, output_neurons);
-
-
-
     uint steps = 2;
-    cout << "Output: " << nn.run(input, steps)[0] << endl;
+
+    vector<vector<nnfloat>> dataset_inputs = vector<vector<nnfloat>>();
+    vector<vector<nnfloat>> dataset_labels = vector<vector<nnfloat>>();
+    cout << "Trying out cost:" << endl;
+    Dataset dataset = Dataset(2, 1); // Input size 2, output size 1 for XOR
+    dataset.loadData_ByReference(dataset_inputs, dataset_labels);
+    dataset.addEntry_ByReference({1.0f, 0.0f}, {0.0f});
+    dataset.addEntry_ByReference({0.0f, 1.0f}, {0.0f});
+    dataset.addEntry_ByReference({1.0f, 1.0f}, {1.0f});
+    dataset.addEntry_ByReference({0.0f, 0.0f}, {1.0f});
+    nnfloat cost = dataset.getNetworkCost(nn, steps, 0, 2);
+    cout << "Cost: " << cost << endl;
+
+    // cout << "Output: " << nn.run(input1, steps)[0] << endl;
     return 0;
 }

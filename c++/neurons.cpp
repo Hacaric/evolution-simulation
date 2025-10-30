@@ -44,11 +44,11 @@ Connection::Connection(Neuron* neuron1_, Neuron* neuron2_, nnfloat weight_){
 //     vector<nnfloat> run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps, nnfloat nomalize(nnfloat) = sigmoid);
 // };
 
-Network::Network(vector<Neuron*> neurons_, vector<Connection*> connections_, vector<uint> input_neurons, vector<uint> default_output_neurons){
+Network::Network(vector<Neuron*> neurons_, vector<Connection*> connections_, vector<uint> default_input_neurons_, vector<uint> default_output_neurons_){
     neurons = neurons_;
     connections = connections_;
-    default_input_neurons = vector<uint>(default_input_neurons);
-    default_output_neurons = vector<uint>(default_output_neurons);
+    default_input_neurons = vector<uint>(default_input_neurons_);
+    default_output_neurons = vector<uint>(default_output_neurons_);
     // map = vector<vector<Connection*>>();
     // for (uint neuron_i = 0; neuron_i < neurons.size(); neuron_i++){
     //     map.push_back(vector<Connection*>());
@@ -89,10 +89,10 @@ vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, 
         }
         for (uint neuron_i = 0; neurons.size() > neuron_i; neuron_i++){
             if (step % 2 != 0){
-                neurons[neuron_i]->temp_value = nomalize(neurons[neuron_i]->temp_value);
+                neurons[neuron_i]->temp_value = nomalize(neurons[neuron_i]->temp_value + neurons[neuron_i]->bias);
                 // neurons[neuron_i]->temp_value2 = 0;
             }else{
-                neurons[neuron_i]->temp_value2 = nomalize(neurons[neuron_i]->temp_value2);
+                neurons[neuron_i]->temp_value2 = nomalize(neurons[neuron_i]->temp_value2 + neurons[neuron_i]->bias);
                 // neurons[neuron_i]->temp_value = 0;
             }
             cout << step << "N" << neuron_i <<": " << neurons[neuron_i]->temp_value << ", " << neurons[neuron_i]->temp_value2 <<endl;
@@ -100,6 +100,7 @@ vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, 
     }
     // cout << "end: " << neurons[4]->temp_value << endl;
     // cout << "end: " << neurons[4]->temp_value2 << endl;
+    cout << "Network.run checkpoint 1:" << neurons.size() << ", " << output_neurons.size() << endl;
     vector<nnfloat> output = vector<nnfloat>();
     for (uint output_neuron_i = 0; output_neurons.size() > output_neuron_i; output_neuron_i++){
         if (steps % 2 == 0){
@@ -108,6 +109,7 @@ vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, 
             output.push_back(neurons[output_neurons[output_neuron_i]]->temp_value2);
         }
     }
+    cout << "Netowrk.run finished!" << endl;
     return output;
 };
 vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps){
@@ -123,7 +125,7 @@ Network Network::copy(){
     vector<Neuron*> new_neurons;
     unordered_map<Neuron*, Neuron*> old_to_new_neuron_map;
     for (Neuron* n : neurons) {
-        Neuron* new_n = new Neuron();
+        Neuron* new_n = new Neuron(n->bias);
         new_neurons.push_back(new_n);
         old_to_new_neuron_map[n] = new_n;
     }
