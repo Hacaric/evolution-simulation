@@ -12,7 +12,7 @@ CXXFLAGS = -std=c++20 -Wall -Wextra -O2
 TARGET = main
 
 # The source file(s) for the project
-SRCS = main.cpp neurons.cpp
+SRCS = main.cpp neurons.cpp dataset.cpp
 
 # The default target, 'all', builds the main target.
 all: $(TARGET)

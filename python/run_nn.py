@@ -24,13 +24,11 @@ for i in range(testing_samples_count):
     dataset.append([image.tolist(), label.tolist()])
 
 for data in dataset:
-    input_, answer = data
+    input_, label = data
     formatted_input = ""
     for x in range(28):
         for y in range(28):
             formatted_input += "  " if input_[x*28 + y] < 0.5 else "EE"
         formatted_input += "\n"
-    print(f"NN output for:\n{formatted_input}:\n{", ".join([str(i) + "0"*(5 - len(str(i))) for i in nn.run(input_)])}, correct answer: \n{", ".join([str(i) + "0"*(5 - len(str(i))) for i in answer])}")
+    print(f"NN output for:\n{formatted_input}:\n{", ".join([str(i) + "0"*(5 - len(str(i))) for i in nn.run(input_)])}, correct answer: \n{", ".join([str(i) + "0"*(5 - len(str(i))) for i in label])}")
 print(f"\nCost: {evolve.get_cost_of_nn(nn, dataset)}")
-
-

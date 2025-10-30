@@ -47,6 +47,9 @@ vector<Network> mutate(Network parent, uint copy_amount, pair<uint, uint> mutati
     return networks;
 }
 
+// nnfloat getCost(Network nn, uint steps, Dataset dataset)
+
+
 int main(){
     srand(time(NULL)); // Seed random number generator for rand()
     vector<Neuron*> neurons = vector<Neuron*>();
@@ -61,7 +64,6 @@ int main(){
     connections.push_back(new Connection(neurons[1], neurons[3], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[2], neurons[4], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[2], neurons[4], randfloat(-1, 1)));
-    Network nn = Network(neurons, connections);
     vector<uint> input_neurons = vector<uint>();
     input_neurons.push_back(0);
     input_neurons.push_back(1);
@@ -70,7 +72,11 @@ int main(){
     input.push_back(randfloat(-1, 1));
     vector<uint> output_neurons = vector<uint>();
     output_neurons.push_back(4);
+    Network nn = Network(neurons, connections, input_neurons, output_neurons);
+
+
+
     uint steps = 2;
-    cout << "Output: " << nn.run(input_neurons, input, output_neurons, steps)[0] << endl;
+    cout << "Output: " << nn.run(input, steps)[0] << endl;
     return 0;
 }

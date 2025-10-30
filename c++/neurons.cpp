@@ -44,9 +44,11 @@ Connection::Connection(Neuron* neuron1_, Neuron* neuron2_, nnfloat weight_){
 //     vector<nnfloat> run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps, nnfloat nomalize(nnfloat) = sigmoid);
 // };
 
-Network::Network(vector<Neuron*> neurons_, vector<Connection*> connections_){
+Network::Network(vector<Neuron*> neurons_, vector<Connection*> connections_, vector<uint> input_neurons, vector<uint> default_output_neurons){
     neurons = neurons_;
     connections = connections_;
+    default_input_neurons = vector<uint>(default_input_neurons);
+    default_output_neurons = vector<uint>(default_output_neurons);
     // map = vector<vector<Connection*>>();
     // for (uint neuron_i = 0; neuron_i < neurons.size(); neuron_i++){
     //     map.push_back(vector<Connection*>());
@@ -111,6 +113,12 @@ vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, 
 vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps){
     return run(input_neurons, input, output_neurons, steps, sigmoid);
 };
+vector<nnfloat> Network::run(vector<nnfloat> input, uint steps){
+    return run(default_input_neurons, input, default_output_neurons, steps, sigmoid);
+}
+vector<nnfloat> Network::run(vector<nnfloat> input, uint steps, nnfloat normalize(nnfloat)){
+    return run(default_input_neurons, input, default_output_neurons, steps, normalize);
+}
 Network Network::copy(){
     vector<Neuron*> new_neurons;
     unordered_map<Neuron*, Neuron*> old_to_new_neuron_map;
@@ -127,6 +135,6 @@ Network Network::copy(){
         Connection* new_c = new Connection(new_source, new_target, c->weight);
         new_connections.push_back(new_c);
     }
-    return Network(new_neurons, new_connections);
+    return Network(new_neurons, new_connections, default_input_neurons, default_output_neurons);
 
 }

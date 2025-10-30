@@ -10,8 +10,8 @@ def difference(list1:list[int], list2:list[int]):
 
 def get_cost_of_nn(nn:NeuralNetwork, dataset:list[list[list[int], list[int]]]):
     results = []
-    for input_, answer in dataset:
-        results.append(difference(nn.run(input_), answer))
+    for input_, label in dataset:
+        results.append(difference(nn.run(input_), label))
     return sum(results) / (len(dataset) * (nn.value_range[1] - nn.value_range[0]))
 
 def random_float(range_:tuple[int, int]):

@@ -80,13 +80,13 @@ except KeyboardInterrupt:
 best_cost_average /= test_count
 
 # for data in dataset:
-#     input_, answer = data
+#     input_, label = data
 #     formatted_input = ""
 #     for x in range(28):
 #         for y in range(28):
 #             formatted_input += "  " if input_[x*28 + y] < 0.5 else "EE"
 #         formatted_input += "\n"
-#     print(f"Final NN output for:\n{formatted_input}:\n{nn.run(input_)}, correct answer: \n{answer}")
+#     print(f"Final NN output for:\n{formatted_input}:\n{nn.run(input_)}, correct answer: \n{label}")
 
 print(f"\nLast cost: {best_cost}")
 print(f"Best cost average: {round(best_cost_average, 8):.8f}")
