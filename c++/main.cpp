@@ -26,9 +26,12 @@ nnfloat randfloat(nnfloat range_start, nnfloat range_end) {
     return distrib(gen);
 }
 
-vector<Network> mutate(Network parent, uint copy_amount, pair<uint, uint> mutations_per_network_range, pair<nnfloat, nnfloat> mutation_size_range){
+vector<Network> mutate(Network& parent, uint copy_amount, pair<uint, uint> mutations_per_network_range, pair<nnfloat, nnfloat> mutation_size_range, bool include_original){
     vector<Network> networks = vector<Network>();
-    networks.reserve(copy_amount); // Pre-allocate memory to avoid reallocations
+    networks.reserve(copy_amount + uint(include_original)); // Pre-allocate memory to avoid reallocations
+    if (include_original){
+        networks.push_back(parent.copy());
+    }
 
     for (uint i = 0; i < copy_amount; i++){
         // Create one copy
@@ -36,11 +39,18 @@ vector<Network> mutate(Network parent, uint copy_amount, pair<uint, uint> mutati
 
         // Mutate that single copy
         uint mutation_count = randint(mutations_per_network_range.first, mutations_per_network_range.second);
-        for (uint mutation_i = 0; mutation_i < mutation_count; mutation_i++){
-            if (child.connections.empty()) continue; // Avoid crash if there are no connections
-            nnfloat mutation_size = randfloat(mutation_size_range.first, mutation_size_range.second);
-            uint affected_connection_idx = randint(child.connections.size());
-            child.connections[affected_connection_idx]->weight += mutation_size;
+        for (uint mutation_i = 0; mutation_i < mutation_count; ++mutation_i){
+            if (randint(0, 2) == 0){ // Mutate a connection weight
+                if (child.connections.empty()) continue; // Avoid crash if there are no connections
+                nnfloat mutation_size = randfloat(mutation_size_range.first, mutation_size_range.second);
+                uint affected_connection_idx = randint(child.connections.size());
+                child.connections[affected_connection_idx]->weight = sigmoid(child.connections[affected_connection_idx]->weight + mutation_size);
+            } else {
+                if (child.neurons.empty()) continue;
+                nnfloat mutation_size = randfloat(mutation_size_range.first, mutation_size_range.second);
+                uint affected_connection_idx = randint(child.neurons.size());
+                child.neurons[affected_connection_idx]->bias = sigmoid(child.neurons[affected_connection_idx]->bias + mutation_size);
+            }       
         }
         networks.push_back(move(child)); // Move the mutated child into the vector
     }
@@ -48,7 +58,29 @@ vector<Network> mutate(Network parent, uint copy_amount, pair<uint, uint> mutati
 }
 
 // nnfloat getNetworkCost(Network nn, uint steps, Dataset dataset)
+Network* evolve(Network& nn, uint steps, Dataset& dataset, uint networks_per_iter, uint iterations){
+    nnfloat min_cost = MAXNNFLOAT;
+    nnfloat cost;
+    Network parent_nn = nn.copy();
 
+    for (uint iter = 0; iter < iterations; ++iter){
+        min_cost = MAXNNFLOAT;
+        int best_idx = -1;
+
+        vector<Network> mutated_nn = mutate(parent_nn, networks_per_iter-1, {1,3}, {-1.0f, 1.0f}, true);
+        for (uint i = 0; i < mutated_nn.size(); i++){
+            // cout << "Mutation " << i << " cost: " << dataset.getNetworkCost(mutated_nn[i], steps) << endl;
+            cost = dataset.getNetworkCost(mutated_nn[i], steps);
+            if (cost < min_cost){
+                min_cost = cost;
+                best_idx = i;
+            }
+        }
+        cout << "Lowest cost after " << iter << "th iteration: " << min_cost << endl; 
+        parent_nn = mutated_nn[best_idx].copy();
+    }
+    return new Network(parent_nn); // Return a dynamically allocated copy
+}
 
 int main(){
     srand(time(NULL)); // Seed random number generator for rand()
@@ -77,15 +109,28 @@ int main(){
 
     vector<vector<nnfloat>> dataset_inputs = vector<vector<nnfloat>>();
     vector<vector<nnfloat>> dataset_labels = vector<vector<nnfloat>>();
-    cout << "Trying out cost:" << endl;
     Dataset dataset = Dataset(2, 1); // Input size 2, output size 1 for XOR
     dataset.loadData_ByReference(dataset_inputs, dataset_labels);
     dataset.addEntry_ByReference({1.0f, 0.0f}, {0.0f});
     dataset.addEntry_ByReference({0.0f, 1.0f}, {0.0f});
     dataset.addEntry_ByReference({1.0f, 1.0f}, {1.0f});
     dataset.addEntry_ByReference({0.0f, 0.0f}, {1.0f});
-    nnfloat cost = dataset.getNetworkCost(nn, steps, 0, 2);
-    cout << "Cost: " << cost << endl;
+
+    nnfloat cost = dataset.getNetworkCost(nn, steps);
+    cout << "Initial Cost: " << cost << endl;
+
+    uint iterations;
+    uint copies_per_iter;
+    cout << "Enter number of iterations: ";
+    cin >> iterations;
+    cout << "\nEnter number of copies_per_iter: ";
+    cin >> copies_per_iter;
+    Network* best_nn = evolve(nn, steps, dataset, copies_per_iter, iterations);
+
+    cout << "Final (best) cost: " << dataset.getNetworkCost(*best_nn, steps) << endl;
+
+    // Clean up the dynamically allocated memory
+    delete best_nn;
 
     // cout << "Output: " << nn.run(input1, steps)[0] << endl;
     return 0;

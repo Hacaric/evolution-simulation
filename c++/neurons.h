@@ -7,6 +7,7 @@
 using namespace std;
 
 typedef float nnfloat;
+#define MAXNNFLOAT MAXFLOAT
 typedef unsigned uint;
 
 nnfloat sigmoid(nnfloat x);
@@ -59,8 +60,8 @@ public:
     void loadData_ByCopying(vector<vector<nnfloat>> inputs_, vector<vector<nnfloat>> labels_);
     void addEntry_ByReference(vector<nnfloat> input_, vector<nnfloat> label_);
     void addEntry_ByCopying(vector<nnfloat> input_, vector<nnfloat> label_);
-    nnfloat getNetworkCost(Network nn, uint steps, uint sample_start, uint sample_end);
-    nnfloat getNetworkCost(Network nn, uint steps, uint sample_lenght);
-    nnfloat getNetworkCost(Network nn, uint steps);
-    nnfloat getNetworkCostRandomSample(Network nn, uint steps, uint sample_lenght);
+    nnfloat getNetworkCost(Network& nn, uint steps, uint sample_start, uint sample_end);
+    nnfloat getNetworkCost(Network& nn, uint steps, uint sample_lenght);
+    nnfloat getNetworkCost(Network& nn, uint steps);
+    nnfloat getNetworkCostRandomSample(Network& nn, uint steps, uint sample_lenght);
 };
