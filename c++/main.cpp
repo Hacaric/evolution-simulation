@@ -83,6 +83,14 @@ Network* evolve(Network& nn, uint steps, Dataset& dataset, uint networks_per_ite
 }
 
 int main(){
+
+    uint iterations;
+    uint copies_per_iter;
+    cout << "\nEnter number of iterations: ";
+    cin >> iterations;
+    cout << "Enter number of copies_per_iter: ";
+    cin >> copies_per_iter;
+    
     srand(time(NULL)); // Seed random number generator for rand()
     vector<Neuron*> neurons = vector<Neuron*>();
     for (uint i = 0; i < 5; i++){
@@ -119,12 +127,6 @@ int main(){
     nnfloat cost = dataset.getNetworkCost(nn, steps);
     cout << "Initial Cost: " << cost << endl;
 
-    uint iterations;
-    uint copies_per_iter;
-    cout << "Enter number of iterations: ";
-    cin >> iterations;
-    cout << "\nEnter number of copies_per_iter: ";
-    cin >> copies_per_iter;
     Network* best_nn = evolve(nn, steps, dataset, copies_per_iter, iterations);
 
     cout << "Final (best) cost: " << dataset.getNetworkCost(*best_nn, steps) << endl;
