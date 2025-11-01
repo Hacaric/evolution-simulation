@@ -44,72 +44,62 @@ Connection::Connection(Neuron* neuron1_, Neuron* neuron2_, nnfloat weight_){
 //     vector<nnfloat> run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps, nnfloat nomalize(nnfloat) = sigmoid);
 // };
 
-Network::Network(vector<Neuron*> neurons_, vector<Connection*> connections_, vector<uint> default_input_neurons_, vector<uint> default_output_neurons_){
+Network::Network(vector<Neuron*> neurons_, vector<Connection*> connections_, vector<uint> default_input_neurons_, vector<uint> default_output_neurons_, pair<uint, uint> mutations_per_copy_range_, pair<nnfloat, nnfloat> mutation_size_range_, vector<nnfloat> mutation_type_probabilities_){
     neurons = neurons_;
     connections = connections_;
     default_input_neurons = vector<uint>(default_input_neurons_);
     default_output_neurons = vector<uint>(default_output_neurons_);
-    // map = vector<vector<Connection*>>();
-    // for (uint neuron_i = 0; neuron_i < neurons.size(); neuron_i++){
-    //     map.push_back(vector<Connection*>());
-    //     map_neuron_to_index[neurons[neuron_i]] = neuron_i;
-    // }
-    // uint source_node;
-    // for (uint connection_i = 0; connection_i < connections.size(); connection_i++){
-    //     source_node = map_neuron_to_index[connections[connection_i]->source];
-    //     map[source_node].push_back(connections[connection_i]);
-    // }
+    mutations_per_copy_range = mutations_per_copy_range_;
+    mutations_size_range = mutation_size_range_;
+
+
+    if (mutation_type_probabilities_.size() != MUTATION_TYPES_COUNT){
+        throw invalid_argument("Error: mutation_type_probabilities_ must have " + to_string(MUTATION_TYPES_COUNT) + " elements.");
+    }
+    mutation_type_probabilities = vector<nnfloat>(mutation_type_probabilities_);
+
+    if (mutation_type_probabilities.size() != MUTATION_TYPES_COUNT){
+        throw invalid_argument("Error: mutation_type_probabilities_ must have " + to_string(MUTATION_TYPES_COUNT) + " elements.");
+    }
+    mutation_type_probabilities_sum = 0;
+    for (uint i = 0; i < mutation_type_probabilities.size(); i++){
+        mutation_type_probabilities_sum += mutation_type_probabilities[i];
+    }
 };
 
 vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps, nnfloat nomalize(nnfloat)){
-    for (uint neuron_i = 0; neurons.size() > neuron_i; neuron_i++){
-        neurons[neuron_i]->temp_value = 0;
-        neurons[neuron_i]->temp_value2 = 0;
+    // Initialize neuron values
+    for (Neuron* n : neurons) {
+        n->temp_value = 0;
     }
+
+    // Set input neuron values
     for (uint input_neuron_i = 0; input_neurons.size() > input_neuron_i; input_neuron_i++){
         neurons[input_neurons[input_neuron_i]] -> temp_value = input[input_neuron_i];
     }
-    Connection* curr;
+
     for (uint step = 0; steps > step; step++){
-        // cout << "Round1: " << neurons[1]->temp_value << endl;
-        // cout << "Round1: " << neurons[1]->temp_value2 << ",connsize " << connections.size() << endl;
-        for (uint connection_i = 0; connections.size() > connection_i; connection_i++){
-            curr = connections[connection_i];
-            if (step % 2 != 0){
-                // cout << curr->target->temp_value << ",(A) " << neurons[1]->temp_value << endl;
-                // cout << curr->target->temp_value2 << ",(A) " << neurons[1]->temp_value2 << endl;
-                curr->target->temp_value += curr->source->temp_value2 * curr->weight + curr->target->bias;
-                // cout << curr->target->temp_value << ",(A2) " << neurons[1]->temp_value << endl;
-                // cout << curr->target->temp_value2 << ",(A2) " << neurons[1]->temp_value2 << endl;
-            }else{
-                // cout << curr->target->temp_value << ",(B) " << neurons[1]->temp_value << endl;
-                curr->target->temp_value2 += curr->source->temp_value * curr->weight + curr->target->bias;
-                // cout << curr->target->temp_value << ",(B2) " << neurons[1]->temp_value << endl;
-            }
+        // Use temp_value2 to store the next state's accumulated values
+        for (Neuron* n : neurons) {
+            n->temp_value2 = 0;
         }
-        for (uint neuron_i = 0; neurons.size() > neuron_i; neuron_i++){
-            if (step % 2 != 0){
-                neurons[neuron_i]->temp_value = nomalize(neurons[neuron_i]->temp_value + neurons[neuron_i]->bias);
-                // neurons[neuron_i]->temp_value2 = 0;
-            }else{
-                neurons[neuron_i]->temp_value2 = nomalize(neurons[neuron_i]->temp_value2 + neurons[neuron_i]->bias);
-                // neurons[neuron_i]->temp_value = 0;
-            }
-            // cout << step << "N" << neuron_i <<": " << neurons[neuron_i]->temp_value << ", " << neurons[neuron_i]->temp_value2 <<endl;
+
+        // Accumulate weighted inputs
+        for (Connection* c : connections) {
+            c->target->temp_value2 += c->source->temp_value * c->weight;
+        }
+
+        // Apply bias and activation function, then update the main temp_value
+        for (Neuron* n : neurons) {
+            n->temp_value = nomalize(n->temp_value2 + n->bias);
         }
     }
-    // cout << "end: " << neurons[4]->temp_value << endl;
-    // cout << "end: " << neurons[4]->temp_value2 << endl;
-    // cout << "Network.run checkpoint 1:" << neurons.size() << ", " << output_neurons.size() << endl;
+
     vector<nnfloat> output = vector<nnfloat>();
     for (uint output_neuron_i = 0; output_neurons.size() > output_neuron_i; output_neuron_i++){
-        if (steps % 2 == 0){
-            output.push_back(neurons[output_neurons[output_neuron_i]]->temp_value);
-        } else {
-            output.push_back(neurons[output_neurons[output_neuron_i]]->temp_value2);
-        }
+        // The final value is in temp_value
+        output.push_back(neurons[output_neurons[output_neuron_i]]->temp_value);
     }
-    // cout << "Netowrk.run finished!" << endl;
     return output;
 };
 vector<nnfloat> Network::run(vector<uint> input_neurons, vector<nnfloat> input, vector<uint> output_neurons, uint steps){
@@ -137,6 +127,10 @@ Network Network::copy(){
         Connection* new_c = new Connection(new_source, new_target, c->weight);
         new_connections.push_back(new_c);
     }
-    return Network(new_neurons, new_connections, default_input_neurons, default_output_neurons);
+    return Network(new_neurons, new_connections, default_input_neurons, default_output_neurons, mutations_per_copy_range, mutations_size_range, mutation_type_probabilities);
 
 }
+
+// void Network::save_to_file(string filename, bool overwrite){
+    
+// }

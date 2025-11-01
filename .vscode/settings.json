@@ -41,6 +41,10 @@
         "cstdlib": "cpp",
         "numbers": "cpp",
         "typeinfo": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "functional": "cpp",
+        "numeric": "cpp",
+        "ranges": "cpp",
+        "unordered_map": "cpp"
     }
 }
