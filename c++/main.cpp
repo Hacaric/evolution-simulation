@@ -66,9 +66,9 @@ vector<Network> mutate(Network& parent, uint copy_amount, bool include_original)
         Network child = parent.copy();
 
         // Mutate that single copy
-        cout << "Mutating, min: " << parent.mutations_per_copy_range.first << endl;
-        if (parent.mutations_per_copy_range.first > 100000){
-            throw out_of_range("AAAAAA :D");
+        // cout << "Mutating, min: " << parent.mutations_per_copy_range.first << endl;
+        if (parent.mutations_per_copy_range.first > uint(-1)-500){
+            throw out_of_range("parent.mutations_per_copy_range.first underflow");
         }
         uint mutation_count = randint(parent.mutations_per_copy_range.first, parent.mutations_per_copy_range.second);
         for (uint mutation_i = 0; mutation_i < mutation_count; ++mutation_i){
@@ -103,7 +103,7 @@ vector<Network> mutate(Network& parent, uint copy_amount, bool include_original)
                 long curr_mutation_size = round(randfloat(parent.mutations_size_range.first, parent.mutations_size_range.second));
                 
                 mutation_range_span += curr_mutation_size;
-                if (mutation_range_span < 0) mutation_range_span = 0;
+                if (mutation_range_span < 1) mutation_range_span = 1;
 
                 child.mutations_per_copy_range.second = mutation_range_lower_bound + (uint)mutation_range_span;
                 continue;
@@ -129,7 +129,7 @@ vector<Network> mutate(Network& parent, uint copy_amount, bool include_original)
                 nnfloat mutation_size_lower_bound = child.mutations_size_range.first;
                 nnfloat mutation_size_span = child.mutations_size_range.second - child.mutations_size_range.first;
                 nnfloat curr_mutation_size = randfloat(parent.mutations_size_range.first, parent.mutations_size_range.second) / 4; // Slow down mutation of mutation size
-                mutation_size_span += max(curr_mutation_size, nnfloat(0));
+                mutation_size_span = max(curr_mutation_size + mutation_size_span, nnfloat(1));
                 child.mutations_size_range.second = mutation_size_lower_bound + mutation_size_span;
                 continue;
             }
@@ -140,7 +140,7 @@ vector<Network> mutate(Network& parent, uint copy_amount, bool include_original)
                 nnfloat mutation_size_lower_bound = child.mutations_size_range.first;
                 nnfloat mutation_size_span = child.mutations_size_range.second - child.mutations_size_range.first;
                 nnfloat curr_mutation_size = randfloat(parent.mutations_size_range.first, parent.mutations_size_range.second) / 4; // Slow down mutation of mutation size
-                mutation_size_lower_bound += max(curr_mutation_size, nnfloat(0));
+                mutation_size_lower_bound = max(mutation_size_lower_bound + curr_mutation_size, nnfloat(0));
                 child.mutations_size_range.first = mutation_size_lower_bound;
                 child.mutations_size_range.second = mutation_size_lower_bound + mutation_size_span;
                 continue;
@@ -224,7 +224,7 @@ int main(){
 
     srand(time(NULL)); // Seed random number generator for rand()
     vector<Neuron*> neurons = vector<Neuron*>();
-    for (uint i = 0; i < 6; i++){
+    for (uint i = 0; i < 8; i++){
         Neuron* current_neuron = new Neuron(randfloat(-1, 1));
         neurons.push_back(current_neuron);
     }
@@ -239,6 +239,13 @@ int main(){
     connections.push_back(new Connection(neurons[2], neurons[5], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[3], neurons[5], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[4], neurons[5], randfloat(-1, 1)));
+    connections.push_back(new Connection(neurons[2], neurons[6], randfloat(-1, 1)));
+    connections.push_back(new Connection(neurons[3], neurons[6], randfloat(-1, 1)));
+    connections.push_back(new Connection(neurons[4], neurons[6], randfloat(-1, 1)));
+    
+    connections.push_back(new Connection(neurons[5], neurons[7], randfloat(-1, 1)));
+    connections.push_back(new Connection(neurons[6], neurons[7], randfloat(-1, 1)));
+
     vector<uint> input_neurons = vector<uint>();
     input_neurons.push_back(0);
     input_neurons.push_back(1);
@@ -246,7 +253,7 @@ int main(){
     input1.push_back(randfloat(-1, 1));
     input1.push_back(randfloat(-1, 1));
     vector<uint> output_neurons = vector<uint>();
-    output_neurons.push_back(5);
+    output_neurons.push_back(7);
     pair<uint, uint> mutations_per_copy_range = {4,10};
     pair<nnfloat, nnfloat> mutation_size_range = {-0.5f, 0.5f};
     Network nn = Network(neurons, connections, input_neurons, output_neurons, mutations_per_copy_range, mutation_size_range, mutation_type_probabilities);
