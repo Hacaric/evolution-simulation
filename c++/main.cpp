@@ -215,27 +215,32 @@ int main(){
     uint iterations;
     uint copies_per_iter;
     uint amount_of_networks_carried_to_next_round;
+    uint steps;
     cout << "Enter number of iterations: ";
     cin >> iterations;
     cout << "Enter number of copies_per_iter: ";
     cin >> copies_per_iter;
     cout << "Enter amount of networks carried to next round: ";
     cin >> amount_of_networks_carried_to_next_round;
+    cout << "Enter number of propagation steps per nn pass (make sure the signal reaches output!): ";
+    cin >> steps;
 
     srand(time(NULL)); // Seed random number generator for rand()
     vector<Neuron*> neurons = vector<Neuron*>();
-    for (uint i = 0; i < 8; i++){
+    for (uint i = 0; i < 10; i++){
         Neuron* current_neuron = new Neuron(randfloat(-1, 1));
         neurons.push_back(current_neuron);
     }
     vector<Connection*> connections = vector<Connection*>();
+    // Layer input - 1
     connections.push_back(new Connection(neurons[0], neurons[2], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[1], neurons[2], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[0], neurons[3], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[1], neurons[3], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[0], neurons[4], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[1], neurons[4], randfloat(-1, 1)));
-
+    
+    // Layer 1 - 2
     connections.push_back(new Connection(neurons[2], neurons[5], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[3], neurons[5], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[4], neurons[5], randfloat(-1, 1)));
@@ -243,21 +248,35 @@ int main(){
     connections.push_back(new Connection(neurons[3], neurons[6], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[4], neurons[6], randfloat(-1, 1)));
     
+    // Layer 2 - 3
     connections.push_back(new Connection(neurons[5], neurons[7], randfloat(-1, 1)));
     connections.push_back(new Connection(neurons[6], neurons[7], randfloat(-1, 1)));
+    // connections.push_back(new Connection(neurons[5], neurons[8], randfloat(-1, 1)));
+    // connections.push_back(new Connection(neurons[6], neurons[8], randfloat(-1, 1)));
+    // Loopback
+    // connections.push_back(new Connection(neurons[5], neurons[2], randfloat(-1, 1)));
+    // connections.push_back(new Connection(neurons[6], neurons[2], randfloat(-1, 1)));
 
+    // Layer 3 - output
+    // connections.push_back(new Connection(neurons[7], neurons[9], randfloat(-1, 1)));
+    // connections.push_back(new Connection(neurons[8], neurons[9], randfloat(-1, 1)));
+
+    // DEFINE INPUT NEURONS
     vector<uint> input_neurons = vector<uint>();
     input_neurons.push_back(0);
     input_neurons.push_back(1);
+
+    // DEFINE OUTPUT NEURONS
+    vector<uint> output_neurons = vector<uint>();
+    output_neurons.push_back(7);
+    
     vector<nnfloat> input1 = vector<nnfloat>();
     input1.push_back(randfloat(-1, 1));
     input1.push_back(randfloat(-1, 1));
-    vector<uint> output_neurons = vector<uint>();
-    output_neurons.push_back(7);
+    
     pair<uint, uint> mutations_per_copy_range = {4,10};
     pair<nnfloat, nnfloat> mutation_size_range = {-0.5f, 0.5f};
     Network nn = Network(neurons, connections, input_neurons, output_neurons, mutations_per_copy_range, mutation_size_range, mutation_type_probabilities);
-    uint steps = 2;
 
     vector<vector<nnfloat>> dataset_inputs = vector<vector<nnfloat>>();
     vector<vector<nnfloat>> dataset_labels = vector<vector<nnfloat>>();

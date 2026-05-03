@@ -5,13 +5,50 @@ from evolve import *
 import time
 
 
-ITERATIONS = 5000
-NN_PER_ITERATION = 5
-NN_MUTATION_COUNT:tuple[float, float] = (1, 4)
-NN_MAX_MUTATION_SIZE:float = 1
-SAMPLE_SIZE_PER_GEN = 20
-CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS:int = 100
-training_somples_count = 1000
+ITERATIONS = input("Enter number of iterations (default 5000): ") #5000
+if ITERATIONS:
+    ITERATIONS = int(ITERATIONS)
+else:
+    ITERATIONS = 5000
+NN_PER_ITERATION = input("Enter number of NN per iteration (default 5): ") #5
+if NN_PER_ITERATION:
+    NN_PER_ITERATION = int(NN_PER_ITERATION)
+else:
+    NN_PER_ITERATION = 5
+NN_MUTATION_COUNT:tuple[int, int] = input("Enter NN mutation amout range (default 1 4): ")
+if NN_MUTATION_COUNT:
+    try:
+        NN_MUTATION_COUNT = tuple([int(i) for i in NN_MUTATION_COUNT.split()])
+    except IndexError:
+        print(f"Bad format: {NN_MUTATION_COUNT}, use format: int int")
+        exit(1)
+else:
+    NN_MUTATION_COUNT = (1, 4)
+
+# TODO make it possible for this to be float or rename it, the name suggests its float rn
+NN_MAX_MUTATION_SIZE = input("Enter NN max mutation size (default 1): ") #1
+if NN_MAX_MUTATION_SIZE:
+    NN_MAX_MUTATION_SIZE = int(NN_MAX_MUTATION_SIZE)
+else:
+    NN_MAX_MUTATION_SIZE = 1
+
+SAMPLE_SIZE_PER_GEN = input("Enter sample size per generation (default 20): ") #20
+if SAMPLE_SIZE_PER_GEN:
+    SAMPLE_SIZE_PER_GEN = int(SAMPLE_SIZE_PER_GEN)
+else:
+    SAMPLE_SIZE_PER_GEN = 20
+
+CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS = input("Enter how often to change dataset sample (default 100): ") #100
+if CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS:
+    CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS = int(CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS)
+else:
+    CHANGE_DATASET_SAMPLE_EVERY_X_ITERATIONS = 100
+
+training_somples_count = input("Enter training samples count (default 1000): ") #1000
+if training_somples_count:
+    training_somples_count = int(training_somples_count)
+else:
+    training_somples_count = 1000
 
 print("Loading MNIST data...")
 (train_X, train_y), (test_X, test_y) = mnist.load_data()
@@ -56,8 +93,13 @@ def evolve(NN_SIZE, dataset, ITERATIONS, NN_PER_ITERATION, NN_MUTATION_RATE, NN_
     return nn, best_cost
 
 best_cost_average = 0
+best_cost = None
 nn:NeuralNetwork = None
-test_count = 1
+test_count = input("Enter number of tests (default 1): ") #1
+if test_count:
+    test_count = int(test_count)
+else:
+    test_count = 1
 print("Started testing...")
 training_start_timestamp = time.time()
 try:
